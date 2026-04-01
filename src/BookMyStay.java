@@ -109,7 +109,7 @@ public class BookMyStay {
     // =========================
 // UC5 — Reservation Model
 // =========================
-    static class Reservation {
+    static class Reservation implements java.io.Serializable {
         String guestName;
         String roomType;
 
@@ -118,7 +118,7 @@ public class BookMyStay {
             this.roomType = roomType;
         }
     }
-    static class RoomInventory {
+    static class RoomInventory implements java.io.Serializable {
 
         private java.util.HashMap<String, Integer> inventory;
 
@@ -148,6 +148,13 @@ public class BookMyStay {
             for (java.util.Map.Entry<String, Integer> entry : inventory.entrySet()) {
                 System.out.println(entry.getKey() + " → Available: " + entry.getValue());
             }
+        }
+        HashMap<String, Integer> getInventory() {
+            return inventory;
+        }
+
+        void setInventory(HashMap<String, Integer> data) {
+            inventory = data;
         }
     }
 
@@ -200,7 +207,43 @@ public class BookMyStay {
             System.out.println(type + " | Beds: " + beds + " | Price: ₹" + price);
         }
     }
+    static void saveData(RoomInventory inventory, List<Reservation> history) {
 
+        try (java.io.ObjectOutputStream oos =
+                     new java.io.ObjectOutputStream(
+                             new java.io.FileOutputStream("hotel_data.ser"))) {
+
+            oos.writeObject(inventory.getInventory());
+            oos.writeObject(history);
+
+            System.out.println("\nData saved successfully!");
+
+        } catch (Exception e) {
+            System.out.println("Error saving data: " + e.getMessage());
+        }
+    }
+    static void loadData(RoomInventory inventory, List<Reservation> history) {
+
+        try (java.io.ObjectInputStream ois =
+                     new java.io.ObjectInputStream(
+                             new java.io.FileInputStream("hotel_data.ser"))) {
+
+            HashMap<String, Integer> inv =
+                    (HashMap<String, Integer>) ois.readObject();
+
+            List<Reservation> hist =
+                    (List<Reservation>) ois.readObject();
+
+            inventory.setInventory(inv);
+            history.clear();
+            history.addAll(hist);
+
+            System.out.println("\nData loaded successfully!");
+
+        } catch (Exception e) {
+            System.out.println("\nNo previous data found. Starting fresh.");
+        }
+    }
     // =========================
     // MAIN METHOD
     // =========================
@@ -242,6 +285,7 @@ public class BookMyStay {
 // =========================
 
         RoomInventory inventory = new RoomInventory();
+
 
 // Display inventory
         inventory.displayInventory();
@@ -318,12 +362,15 @@ public class BookMyStay {
 // Stack for rollback (LIFO)
         java.util.Stack<String> rollbackStack = new java.util.Stack<>();
 
+
 // =========================
         // =========================
 // UC8 — Booking History (ADD HERE)
 // =========================
-        java.util.List<Reservation> bookingHistory = new java.util.ArrayList<>();
 
+
+        List<Reservation> bookingHistory = new ArrayList<>();
+        loadData(inventory, bookingHistory);
         while (!bookingQueue.isEmpty()) {
 
             Reservation request = bookingQueue.poll(); // FIFO
@@ -511,5 +558,6 @@ public class BookMyStay {
 
         System.out.println("\nFinal Inventory After Concurrent Booking:");
         inventory.displayInventory();
+        saveData(inventory, bookingHistory);
     }
 }
