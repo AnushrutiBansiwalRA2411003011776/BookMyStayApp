@@ -2,7 +2,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.*;
 public class BookMyStay {
+    // =========================
+// UC7 — Add-On Service Model
+// =========================
+    static class Service {
+        String name;
+        double price;
+
+        Service(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+    }
     // =========================
 // UC5 — Reservation Model
 // =========================
@@ -245,6 +258,44 @@ public class BookMyStay {
 
         for (java.util.Map.Entry<String, java.util.Set<String>> entry : allocationMap.entrySet()) {
             System.out.println(entry.getKey() + " → " + entry.getValue());
+        }
+// =========================
+// UC7 — Add-On Service Mapping
+// =========================
+
+        System.out.println("\nAdd-On Services for Reservations:");
+
+// Map: Reservation ID → List of Services
+        java.util.Map<String, java.util.List<Service>> serviceMap = new java.util.HashMap<>();
+
+// Example: Attach services to allocated rooms
+        for (String roomId : allocatedRoomIds) {
+
+            java.util.List<Service> services = new java.util.ArrayList<>();
+
+            // Add services (example)
+            services.add(new Service("Breakfast", 200));
+            services.add(new Service("WiFi", 100));
+
+            serviceMap.put(roomId, services);
+        }
+        // Display services and cost
+        for (java.util.Map.Entry<String, java.util.List<Service>> entry : serviceMap.entrySet()) {
+
+            String roomId = entry.getKey();
+            java.util.List<Service> services = entry.getValue();
+
+            double totalCost = 0;
+
+            System.out.println("\nReservation ID: " + roomId);
+            System.out.println("Selected Services:");
+
+            for (Service s : services) {
+                System.out.println("- " + s.name + " : ₹" + s.price);
+                totalCost += s.price;
+            }
+
+            System.out.println("Total Add-On Cost: ₹" + totalCost);
         }
     }
 }
