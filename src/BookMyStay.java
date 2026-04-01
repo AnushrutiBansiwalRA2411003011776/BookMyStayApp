@@ -194,5 +194,57 @@ public class BookMyStay {
         for (Reservation r : bookingQueue) {
             System.out.println(r.guestName + " requested " + r.roomType);
         }
+// =========================
+// UC6 — Room Allocation
+// =========================
+
+        System.out.println("\nProcessing Booking Requests...");
+
+// Set to track ALL allocated room IDs (global uniqueness)
+        java.util.Set<String> allocatedRoomIds = new java.util.HashSet<>();
+
+// Map: Room Type → Assigned Room IDs
+        java.util.Map<String, java.util.Set<String>> allocationMap = new java.util.HashMap<>();
+        while (!bookingQueue.isEmpty()) {
+
+            Reservation request = bookingQueue.poll(); // FIFO
+
+            String roomType = request.roomType;
+
+            int available = inventory.getAvailability(roomType);
+
+            if (available > 0) {
+
+                // Generate unique room ID
+                String roomId;
+                do {
+                    roomId = roomType.substring(0, 2).toUpperCase() + (int)(Math.random() * 1000);
+                } while (allocatedRoomIds.contains(roomId));
+
+                // Store globally
+                allocatedRoomIds.add(roomId);
+
+                // Store per room type
+                allocationMap.putIfAbsent(roomType, new java.util.HashSet<>());
+                allocationMap.get(roomType).add(roomId);
+
+                // Update inventory (CRITICAL)
+                inventory.updateAvailability(roomType, available - 1);
+
+                // Confirm booking
+                System.out.println("Booking Confirmed for " + request.guestName +
+                        " | Room: " + roomType +
+                        " | ID: " + roomId);
+
+            } else {
+                System.out.println("Booking Failed for " + request.guestName +
+                        " | No rooms available for " + roomType);
+            }
+        }
+        System.out.println("\nFinal Room Allocations:");
+
+        for (java.util.Map.Entry<String, java.util.Set<String>> entry : allocationMap.entrySet()) {
+            System.out.println(entry.getKey() + " → " + entry.getValue());
+        }
     }
 }
