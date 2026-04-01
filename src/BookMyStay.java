@@ -1,6 +1,20 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
+import java.util.LinkedList;
 public class BookMyStay {
+    // =========================
+// UC5 — Reservation Model
+// =========================
+    static class Reservation {
+        String guestName;
+        String roomType;
+
+        Reservation(String guestName, String roomType) {
+            this.guestName = guestName;
+            this.roomType = roomType;
+        }
+    }
     static class RoomInventory {
 
         private java.util.HashMap<String, Integer> inventory;
@@ -159,6 +173,26 @@ public class BookMyStay {
                 System.out.println("Available: " + available);
                 System.out.println();
             }
+        }
+// =========================
+// UC5 — Booking Request Queue
+// =========================
+
+        System.out.println("\nBooking Requests (Queue - FIFO):");
+
+// Create Queue
+        java.util.Queue<Reservation> bookingQueue = new java.util.LinkedList<>();
+
+// Add booking requests
+        bookingQueue.add(new Reservation("Anu", "Single Room"));
+        bookingQueue.add(new Reservation("Rahul", "Double Room"));
+        bookingQueue.add(new Reservation("Priya", "Suite Room"));
+
+// Display queue
+        System.out.println("Requests in order:");
+
+        for (Reservation r : bookingQueue) {
+            System.out.println(r.guestName + " requested " + r.roomType);
         }
     }
 }
