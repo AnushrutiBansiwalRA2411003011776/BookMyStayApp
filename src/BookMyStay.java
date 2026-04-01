@@ -244,6 +244,17 @@ public class BookMyStay {
 
 // Map: Room Type → Assigned Room IDs
         java.util.Map<String, java.util.Set<String>> allocationMap = new java.util.HashMap<>();
+// =========================
+// UC10 — Cancellation Support
+// =========================
+
+// RoomID → RoomType mapping
+        java.util.Map<String, String> roomIdToType = new java.util.HashMap<>();
+
+// Stack for rollback (LIFO)
+        java.util.Stack<String> rollbackStack = new java.util.Stack<>();
+
+// =========================
         // =========================
 // UC8 — Booking History (ADD HERE)
 // =========================
@@ -269,6 +280,8 @@ public class BookMyStay {
                 } while (allocatedRoomIds.contains(roomId));
 
                 allocatedRoomIds.add(roomId);
+                // UC10 — track mapping
+                roomIdToType.put(roomId, roomType);
 
                 allocationMap.putIfAbsent(roomType, new java.util.HashSet<>());
                 allocationMap.get(roomType).add(roomId);
@@ -301,7 +314,6 @@ public class BookMyStay {
             System.out.println(r.guestName + " booked " + r.roomType);
         }
 
-// =========================
 // UC8 — Report
 // =========================
         System.out.println("\nBooking Report Summary:");
@@ -314,6 +326,46 @@ public class BookMyStay {
 
         for (java.util.Map.Entry<String, Integer> entry : report.entrySet()) {
             System.out.println(entry.getKey() + " → Total Bookings: " + entry.getValue());
+        }
+// =========================
+// UC10 — Booking Cancellation
+// =========================
+
+        System.out.println("\nProcessing Cancellation...");
+
+// Example: cancel ONE booking (latest one)
+        if (!allocatedRoomIds.isEmpty()) {
+
+            // Get a room ID (simulate cancellation)
+            String cancelRoomId = allocatedRoomIds.iterator().next();
+
+            if (roomIdToType.containsKey(cancelRoomId)) {
+
+                String roomType = roomIdToType.get(cancelRoomId);
+
+                // Push to rollback stack
+                rollbackStack.push(cancelRoomId);
+
+                // Remove from allocated sets
+                allocatedRoomIds.remove(cancelRoomId);
+                allocationMap.get(roomType).remove(cancelRoomId);
+
+                // Restore inventory
+                int current = inventory.getAvailability(roomType);
+                inventory.updateAvailability(roomType, current + 1);
+
+                // Remove mapping
+                roomIdToType.remove(cancelRoomId);
+
+                System.out.println("Cancellation successful for Room ID: " + cancelRoomId);
+                System.out.println("Inventory restored for: " + roomType);
+
+            } else {
+                System.out.println("Invalid cancellation request.");
+            }
+
+        } else {
+            System.out.println("No bookings available to cancel.");
         }
 // =========================
 // UC7 — Add-On Service Mapping
