@@ -5,6 +5,70 @@ import java.util.LinkedList;
 import java.util.*;
 public class BookMyStay {
     // =========================
+// UC11 — Concurrent Processor
+// =========================
+    static class BookingProcessor implements Runnable {
+
+        private Queue<Reservation> queue;
+        private RoomInventory inventory;
+        private Set<String> allocatedRoomIds;
+
+        BookingProcessor(Queue<Reservation> queue,
+                         RoomInventory inventory,
+                         Set<String> allocatedRoomIds) {
+            this.queue = queue;
+            this.inventory = inventory;
+            this.allocatedRoomIds = allocatedRoomIds;
+        }
+
+        @Override
+        public void run() {
+
+            while (true) {
+
+                Reservation request;
+
+                // 🔒 synchronized queue access
+                synchronized (queue) {
+                    if (queue.isEmpty()) break;
+                    request = queue.poll();
+                }
+
+                String roomType = request.roomType;
+
+                // 🔒 CRITICAL SECTION
+                synchronized (inventory) {
+
+                    int available = inventory.getAvailability(roomType);
+
+                    if (available > 0) {
+
+                        String roomId = roomType.substring(0, 2).toUpperCase()
+                                + (int)(Math.random() * 1000);
+
+                        // prevent duplicate allocation
+                        while (allocatedRoomIds.contains(roomId)) {
+                            roomId = roomType.substring(0, 2).toUpperCase()
+                                    + (int)(Math.random() * 1000);
+                        }
+
+                        allocatedRoomIds.add(roomId);
+
+                        inventory.updateAvailability(roomType, available - 1);
+
+                        System.out.println(Thread.currentThread().getName() +
+                                " → Booked " + roomType +
+                                " | ID: " + roomId);
+
+                    } else {
+                        System.out.println(Thread.currentThread().getName() +
+                                " → Failed (No rooms): " + roomType);
+                    }
+                }
+            }
+        }
+    }
+    // =========================
 // UC9 — Custom Exception
 // =========================
     static class InvalidBookingException extends Exception {
@@ -405,5 +469,47 @@ public class BookMyStay {
 
             System.out.println("Total Add-On Cost: ₹" + totalCost);
         }
+
+        // =========================
+// UC11 — Concurrent Simulation
+// =========================
+
+        System.out.println("\nStarting Concurrent Booking Simulation...");
+
+// Shared queue
+        Queue<Reservation> concurrentQueue = new LinkedList<>();
+
+// Add multiple requests
+        concurrentQueue.add(new Reservation("A", "Single Room"));
+        concurrentQueue.add(new Reservation("B", "Single Room"));
+        concurrentQueue.add(new Reservation("C", "Double Room"));
+        concurrentQueue.add(new Reservation("D", "Suite Room"));
+        concurrentQueue.add(new Reservation("E", "Suite Room"));
+        concurrentQueue.add(new Reservation("F", "Suite Room")); // extra to test fail
+
+// Shared resources
+        Set<String> concurrentAllocated = new HashSet<>();
+
+// Threads
+        Thread t1 = new Thread(new BookingProcessor(concurrentQueue, inventory, concurrentAllocated), "Thread-1");
+        Thread t2 = new Thread(new BookingProcessor(concurrentQueue, inventory, concurrentAllocated), "Thread-2");
+        Thread t3 = new Thread(new BookingProcessor(concurrentQueue, inventory, concurrentAllocated), "Thread-3");
+
+// Start threads
+        t1.start();
+        t2.start();
+        t3.start();
+
+// Wait for completion
+        try {
+            t1.join();
+            t2.join();
+            t3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("\nFinal Inventory After Concurrent Booking:");
+        inventory.displayInventory();
     }
 }
