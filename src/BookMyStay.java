@@ -1,11 +1,38 @@
-/**
- * Book My Stay Application
- * Entry point for the Hotel Booking Management System.
- *
- * @author Anu
- * @version 2.1
- */
+import java.util.HashMap;
+import java.util.Map;
 public class BookMyStay {
+    static class RoomInventory {
+
+        private java.util.HashMap<String, Integer> inventory;
+
+        // Constructor → initialize inventory
+        RoomInventory() {
+            inventory = new java.util.HashMap<>();
+
+            inventory.put("Single Room", 5);
+            inventory.put("Double Room", 3);
+            inventory.put("Suite Room", 2);
+        }
+
+        // Get availability
+        int getAvailability(String roomType) {
+            return inventory.getOrDefault(roomType, 0);
+        }
+
+        // Update availability
+        void updateAvailability(String roomType, int count) {
+            inventory.put(roomType, count);
+        }
+
+        // Display full inventory
+        void displayInventory() {
+            System.out.println("\nCurrent Room Inventory:");
+
+            for (java.util.Map.Entry<String, Integer> entry : inventory.entrySet()) {
+                System.out.println(entry.getKey() + " → Available: " + entry.getValue());
+            }
+        }
+    }
 
     // =========================
     // Abstract Room Class
@@ -92,5 +119,21 @@ public class BookMyStay {
 
         r3.displayDetails();
         System.out.println("Available: " + suiteAvailable);
+
+        // =========================
+// UC3 — Use Inventory
+// =========================
+
+        RoomInventory inventory = new RoomInventory();
+
+// Display inventory
+        inventory.displayInventory();
+
+// Example update
+        inventory.updateAvailability("Single Room", 4);
+
+// Display after update
+        System.out.println("\nAfter updating Single Room availability:");
+        inventory.displayInventory();
     }
 }
