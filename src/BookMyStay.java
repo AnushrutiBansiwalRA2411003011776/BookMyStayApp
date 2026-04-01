@@ -135,5 +135,30 @@ public class BookMyStay {
 // Display after update
         System.out.println("\nAfter updating Single Room availability:");
         inventory.displayInventory();
+        // =========================
+// UC4 — Room Search (Read-Only)
+// =========================
+
+        System.out.println("\nAvailable Rooms (Search Results):");
+
+// Create room objects again (domain usage)
+        Room[] rooms = {
+                new SingleRoom(),
+                new DoubleRoom(),
+                new SuiteRoom()
+        };
+
+// Loop through rooms and check availability
+        for (Room room : rooms) {
+
+            int available = inventory.getAvailability(room.type);
+
+            // Show only available rooms
+            if (available > 0) {
+                room.displayDetails();
+                System.out.println("Available: " + available);
+                System.out.println();
+            }
+        }
     }
 }
