@@ -5,6 +5,32 @@ import java.util.LinkedList;
 import java.util.*;
 public class BookMyStay {
     // =========================
+// UC9 — Custom Exception
+// =========================
+    static class InvalidBookingException extends Exception {
+        InvalidBookingException(String message) {
+            super(message);
+        }
+    }
+    // =========================
+// UC9 — Validator
+// =========================
+    static void validateBooking(String roomType, int available) throws InvalidBookingException {
+
+        // Validate room type
+        if (!(roomType.equals("Single Room") ||
+                roomType.equals("Double Room") ||
+                roomType.equals("Suite Room"))) {
+
+            throw new InvalidBookingException("Invalid room type: " + roomType);
+        }
+
+        // Validate availability
+        if (available <= 0) {
+            throw new InvalidBookingException("No availability for: " + roomType);
+        }
+    }
+    // =========================
 // UC7 — Add-On Service Model
 // =========================
     static class Service {
@@ -231,7 +257,10 @@ public class BookMyStay {
 
             int available = inventory.getAvailability(roomType);
 
-            if (available > 0) {
+            try {
+
+                // UC9 Validation
+                validateBooking(roomType, available);
 
                 // Generate unique room ID
                 String roomId;
@@ -239,26 +268,23 @@ public class BookMyStay {
                     roomId = roomType.substring(0, 2).toUpperCase() + (int)(Math.random() * 1000);
                 } while (allocatedRoomIds.contains(roomId));
 
-                // Store globally
                 allocatedRoomIds.add(roomId);
 
-                // Store per room type
                 allocationMap.putIfAbsent(roomType, new java.util.HashSet<>());
                 allocationMap.get(roomType).add(roomId);
 
-                // Update inventory (CRITICAL)
                 inventory.updateAvailability(roomType, available - 1);
-                // UC8 — store booking history
-                bookingHistory.add(request);
 
-                // Confirm booking
+                bookingHistory.add(request); // UC8
+
                 System.out.println("Booking Confirmed for " + request.guestName +
                         " | Room: " + roomType +
                         " | ID: " + roomId);
 
-            } else {
+            } catch (InvalidBookingException e) {
+
                 System.out.println("Booking Failed for " + request.guestName +
-                        " | No rooms available for " + roomType);
+                        " | Reason: " + e.getMessage());
             }
         }
         System.out.println("\nFinal Room Allocations:");
