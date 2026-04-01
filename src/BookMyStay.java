@@ -218,6 +218,11 @@ public class BookMyStay {
 
 // Map: Room Type → Assigned Room IDs
         java.util.Map<String, java.util.Set<String>> allocationMap = new java.util.HashMap<>();
+        // =========================
+// UC8 — Booking History (ADD HERE)
+// =========================
+        java.util.List<Reservation> bookingHistory = new java.util.ArrayList<>();
+
         while (!bookingQueue.isEmpty()) {
 
             Reservation request = bookingQueue.poll(); // FIFO
@@ -243,6 +248,8 @@ public class BookMyStay {
 
                 // Update inventory (CRITICAL)
                 inventory.updateAvailability(roomType, available - 1);
+                // UC8 — store booking history
+                bookingHistory.add(request);
 
                 // Confirm booking
                 System.out.println("Booking Confirmed for " + request.guestName +
@@ -258,6 +265,29 @@ public class BookMyStay {
 
         for (java.util.Map.Entry<String, java.util.Set<String>> entry : allocationMap.entrySet()) {
             System.out.println(entry.getKey() + " → " + entry.getValue());
+        }
+// =========================
+// UC8 — Booking History Display
+// =========================
+        System.out.println("\nBooking History:");
+
+        for (Reservation r : bookingHistory) {
+            System.out.println(r.guestName + " booked " + r.roomType);
+        }
+
+// =========================
+// UC8 — Report
+// =========================
+        System.out.println("\nBooking Report Summary:");
+
+        java.util.Map<String, Integer> report = new java.util.HashMap<>();
+
+        for (Reservation r : bookingHistory) {
+            report.put(r.roomType, report.getOrDefault(r.roomType, 0) + 1);
+        }
+
+        for (java.util.Map.Entry<String, Integer> entry : report.entrySet()) {
+            System.out.println(entry.getKey() + " → Total Bookings: " + entry.getValue());
         }
 // =========================
 // UC7 — Add-On Service Mapping
